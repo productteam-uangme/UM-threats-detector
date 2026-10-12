@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wording Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+[hidden]{display:none!important}
+body{margin:0}
+img{max-width:100%}
+/* Layout: one-column tool, header with live counts, three tabs (Cek · Master · Temukan). */
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --sunk:#eef1f4; --ink:#15202a; --muted:#5a6672; --line:#dde2e8;
+  --accent:#0d6b5b; --accent-ink:#ffffff; --accent-soft:#e1f1ed;
+  --crit:#b83227; --crit-soft:#fbe7e5; --warn:#a2620a; --warn-soft:#fbf0dc;
+  --ok:#2c7a3a; --ok-soft:#e5f3e7; --neu:#55616d; --neu-soft:#eceff2;
+  --f-ui:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1317; --surface:#151c22; --sunk:#10161b; --ink:#e5eaee; --muted:#94a1ac; --line:#26313a;
+  --accent:#43bfa5; --accent-ink:#06201b; --accent-soft:#163029;
+  --crit:#ff8073; --crit-soft:#3a1d1a; --warn:#f0b04f; --warn-soft:#352813;
+  --ok:#74cf86; --ok-soft:#18301d; --neu:#a7b2bc; --neu-soft:#1e272e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1317; --surface:#151c22; --sunk:#10161b; --ink:#e5eaee; --muted:#94a1ac; --line:#26313a;
+  --accent:#43bfa5; --accent-ink:#06201b; --accent-soft:#163029;
+  --crit:#ff8073; --crit-soft:#3a1d1a; --warn:#f0b04f; --warn-soft:#352813;
+  --ok:#74cf86; --ok-soft:#18301d; --neu:#a7b2bc; --neu-soft:#1e272e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.5}
+.app{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:2px 0 0;font-size:13px}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat b{font-family:var(--f-mono);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.mode{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok)}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:600 14px var(--f-ui);color:var(--muted);cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+h2{font-size:15px;margin:0;font-weight:700}
+h3{font-size:12px;margin:0;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:6px;font:600 13px var(--f-ui);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=search],textarea,select{font:14px var(--f-ui);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:110px;line-height:1.5}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row > .grow{flex:1 1 200px;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13px var(--f-ui);padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--sunk)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{color:var(--crit)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;background:var(--neu-soft);color:var(--neu)}
+.chip.crit{background:var(--crit-soft);color:var(--crit)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.ghost{background:none;border:1px dashed var(--line);color:var(--muted)}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);cursor:pointer;background:var(--sunk);display:flex;flex-direction:column;gap:6px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop img{max-height:260px;border-radius:6px;border:1px solid var(--line)}
+.verdict{border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);background:var(--sunk)}
+.verdict .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted)}
+.verdict .big{font-size:20px;font-weight:700}
+.verdict.crit{background:var(--crit-soft);border-color:transparent}.verdict.crit .big{color:var(--crit)}
+.verdict.warn{background:var(--warn-soft);border-color:transparent}.verdict.warn .big{color:var(--warn)}
+.verdict.ok{background:var(--ok-soft);border-color:transparent}.verdict.ok .big{color:var(--ok)}
+.list{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.item:first-child{border-top:0}
+.item .t{font-weight:500;overflow-wrap:anywhere}
+.item .meta{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.hl{background:var(--crit-soft);color:var(--crit);border-radius:3px;padding:0 2px}
+.hl.safe{background:var(--ok-soft);color:var(--ok)}
+.quote{background:var(--sunk);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;font-size:13.5px}
+.bar{height:5px;border-radius:3px;background:var(--line);width:72px;overflow:hidden;display:inline-block;vertical-align:middle}
+.bar i{display:block;height:100%;background:var(--accent)}
+.empty{color:var(--muted);text-align:center;padding:22px 8px;font-size:13px}
+.note{font-size:12.5px;padding:9px 12px;border-radius:8px;background:var(--warn-soft);color:var(--warn)}
+.note.info{background:var(--accent-soft);color:var(--accent)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.cats button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font:600 12px var(--f-ui);color:var(--muted);cursor:pointer}
+.cats button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.inline-form{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;background:var(--sunk);padding:10px;border-radius:8px}
+.inline-form input{flex:1 1 220px}
+.inline-form select{flex:0 1 200px;width:auto}
+table.mini{border-collapse:collapse;width:100%;font-size:12.5px}
+table.mini td,table.mini th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.mini th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+table.mini td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.scroll-x{overflow-x:auto}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:9}
+.badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--crit);color:var(--surface);font:600 11px/18px var(--f-ui);text-align:center}
+.plat{font-family:var(--f-mono);font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;background:var(--sunk);border:1px solid var(--line);color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.threat{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.threat:first-child{border-top:0}
+.threat.done{opacity:.6}
+.threat .head{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.threat .dates{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:4px 16px;font-size:12px;color:var(--muted)}
+.threat .dates b{color:var(--ink);font-weight:500;font-family:var(--f-mono);font-size:12px}
+.threat a{color:var(--accent);overflow-wrap:anywhere;font-size:12.5px}
+.scanbar{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12.5px;color:var(--muted)}
+.scanbar b{color:var(--ink);font-weight:600}
+details summary{cursor:pointer;font-weight:600;font-size:13px}
+@media (prefers-reduced-motion:no-preference){.btn,.chip,.seg button{transition:background .15s,color .15s}}
+.login{max-width:420px;margin:12vh auto 0;display:flex;flex-direction:column;gap:12px}
+.signout{background:none;border:0;color:var(--muted);font:600 12px var(--f-ui);cursor:pointer;text-decoration:underline;padding:0}
+</style>
+</head>
+<body>
+<div class="app login panel" id="login" hidden>
+  <h1>Wording Radar</h1>
+  <p class="hint" id="login-hint">Masuk dengan email tim. Link login akan dikirim ke email kamu.</p>
+  <label class="f">Email <input type="text" id="login-email" placeholder="nama@uangme.com" autocomplete="email"></label>
+  <div class="row"><button class="btn primary" id="btn-login">Kirim link login</button><span class="hint" id="login-msg"></span></div>
+</div>
+
+<div class="app" id="main" hidden>
+  <header>
+    <div>
+      <h1>Wording Radar</h1>
+      <p class="sub">Master wording, deteksi ML, dan cek screenshot untuk pesan ancaman, doxxing, atau bukan ancaman.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="s-total">–</b><span>Wording</span></div>
+      <div class="stat"><b id="s-threat">–</b><span>Ancaman</span></div>
+      <div class="stat"><b id="s-safe">–</b><span>Bukan ancaman</span></div>
+      <div class="stat"><b id="s-acc">–</b><span>Akurasi model</span></div>
+    </div>
+  </header>
+  <div class="mode"><span class="dot" id="mode-dot"></span><span id="mode-txt">Menghubungkan ke database…</span><span id="who"></span><button class="signout" id="btn-signout">Keluar</button></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tb-cek" aria-selected="true" data-tab="cek">Cek Wording</button>
+    <button role="tab" id="tb-master" aria-selected="false" data-tab="master">Master Wording</button>
+    <button role="tab" id="tb-ml" aria-selected="false" data-tab="ml">Temukan Wording (ML)</button>
+    <button role="tab" id="tb-notif" aria-selected="false" data-tab="notif">Notifikasi Ancaman <span class="badge" id="notif-badge" hidden>0</span></button>
+  </nav>
+
+  <!-- ============ CEK ============ -->
+  <section id="tab-cek" class="grid2">
+    <div class="panel">
+      <div class="seg" role="group" aria-label="Cara cek">
+        <button id="m-ocr" data-m="ocr" aria-pressed="true">Screenshot</button>
+        <button id="m-paste" data-m="paste" aria-pressed="false">Tempel teks</button>
+        <button id="m-search" data-m="search" aria-pressed="false">Cari wording</button>
+      </div>
+
+      <div id="box-ocr" style="display:flex;flex-direction:column;gap:12px">
+        <div class="drop" id="drop" tabindex="0">
+          <b>Taruh screenshot di sini</b>
+          <span class="hint">Klik untuk pilih file, drag &amp; drop, atau tekan Ctrl/Cmd+V</span>
+          <img id="preview" alt="Pratinjau screenshot" hidden>
+        </div>
+        <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <div class="row">
+          <button class="btn primary" id="btn-ocr" disabled>Baca teks (OCR)</button>
+          <button class="btn" id="btn-clear-img" hidden>Ganti gambar</button>
+          <span class="hint" id="ocr-status"></span>
+        </div>
+        <label class="f">Teks hasil OCR (bisa diedit)
+          <textarea id="ocr-text" placeholder="Teks dari screenshot akan muncul di sini…"></textarea>
+        </label>
+      </div>
+
+      <div id="box-paste" hidden style="display:flex;flex-direction:column;gap:12px">
+        <label class="f">Tempel teks chat / SMS / komentar
+          <textarea id="paste-text" placeholder="Contoh: kalau tidak bayar hari ini data kamu kami sebar ke semua kontak"></textarea>
+        </label>
+        <div class="row"><button class="btn primary" id="btn-paste">Cek teks</button><span class="hint">Hasil juga diperbarui otomatis saat mengetik.</span></div>
+      </div>
+
+      <div id="box-search" hidden style="display:flex;flex-direction:column;gap:12px">
+        <label class="f">Cari wording
+          <input type="search" id="q" placeholder="Ketik kata, mis. sebar, kontak, jatuh tempo">
+        </label>
+        <div id="search-results" class="list"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="result">
+      <h2>Hasil</h2>
+      <div class="empty" id="result-empty">Upload screenshot, tempel teks, atau cari wording. Hasilnya dicocokkan ke Master Wording lalu dinilai model ML.</div>
+      <div id="result-body" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+  </section>
+
+  <!-- ============ MASTER ============ -->
+  <section id="tab-master" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="grid2">
+      <div class="panel">
+        <h2>Tambah wording</h2>
+        <label class="f">Wording
+          <input type="text" id="add-text" placeholder="mis. data kamu akan kami sebar ke semua kontak">
+        </label>
+        <div class="row">
+          <label class="f grow">Kategori <select id="add-cat"></select></label>
+          <label class="f grow">Catatan (opsional) <input type="text" id="add-note" placeholder="konteks / sumber"></label>
+        </div>
+        <div class="row"><button class="btn primary" id="btn-add">Simpan ke master</button><span class="hint" id="add-msg"></span></div>
+        <details>
+          <summary>Tambah banyak sekaligus</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+            <textarea id="bulk-text" placeholder="Satu wording per baris"></textarea>
+            <div class="row"><select id="bulk-cat" style="width:auto"></select><button class="btn" id="btn-bulk">Simpan semua</button></div>
+          </div>
+        </details>
+      </div>
+      <div class="panel">
+        <h2>Kategori</h2>
+        <p class="hint">Tiap kategori ditandai ancaman atau bukan. Ini yang menentukan hasil cek.</p>
+        <div class="scroll-x"><table class="mini" id="cat-table"></table></div>
+        <div class="row">
+          <input type="text" id="new-cat" class="grow" placeholder="Nama kategori baru" style="flex:1 1 160px">
+          <select id="new-cat-threat" style="width:auto"><option value="2">Ancaman</option><option value="0">Bukan ancaman</option></select>
+          <button class="btn" id="btn-cat">Tambah kategori</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <h2 style="margin-right:auto">Daftar master wording</h2>
+        <input type="search" id="m-filter" placeholder="Filter…" style="width:220px">
+      </div>
+      <div class="cats" id="m-cats"></div>
+      <div class="list" id="m-list"><div class="empty">Memuat master wording…</div></div>
+    </div>
+  </section>
+
+  <!-- ============ ML ============ -->
+  <section id="tab-ml" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="grid2">
+      <div class="panel">
+        <h2>Baca teks, temukan kandidat wording</h2>
+        <p class="hint">Tempel kumpulan chat atau komplain. Model dilatih ulang otomatis dari Master Wording, lalu tiap kalimat yang belum ada di master diberi prediksi kategori.</p>
+        <textarea id="ml-text" style="min-height:170px" placeholder="Tempel banyak pesan di sini, satu pesan per baris lebih baik."></textarea>
+        <div class="row">
+          <button class="btn primary" id="btn-ml">Analisis dengan model</button>
+          <button class="btn" id="btn-ai" hidden>Ekstrak dengan AI</button>
+          <label class="row hint" style="gap:6px"><input type="checkbox" id="ml-only-threat"> Hanya kandidat ancaman</label>
+        </div>
+        <span class="hint" id="ml-status"></span>
+      </div>
+      <div class="panel">
+        <h2>Status model</h2>
+        <p class="hint">Naive Bayes (kata + pasangan kata, dengan stemming Bahasa Indonesia ringan). Akurasi diukur leave-one-out dari master.</p>
+        <div class="scroll-x"><table class="mini" id="model-table"></table></div>
+        <p class="hint" id="model-note"></p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Kandidat untuk master</h2>
+      <div class="list" id="ml-list"><div class="empty">Belum ada analisis. Tempel teks di atas lalu klik <b>Analisis dengan model</b>.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ NOTIFIKASI ============ -->
+  <section id="tab-notif" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="panel">
+      <div class="toolbar"><h2 style="margin-right:auto">Notifikasi ancaman dari media sosial</h2></div>
+      <p class="hint">Setiap 6 jam Claude mencari postingan dengan kata kunci <b>UangMe</b> di Instagram, TikTok, Facebook, dan Threads lewat Chrome di laptop. Kalau laptop mati, scan otomatis pindah ke web search publik (cakupan lebih sedikit). Hanya postingan yang cocok dengan wording ancaman di Master Wording yang masuk ke sini.</p>
+      <div class="scanbar" id="scanbar"><span>Scan terakhir: <b>belum pernah</b></span></div>
+      <div class="row"><button class="btn primary" id="btn-scan">Scan sekarang</button><span class="hint" id="scan-req"></span></div>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="cats" id="n-plat"></div>
+        <select id="n-status" style="width:auto;margin-left:auto">
+          <option value="baru">Belum ditinjau</option>
+          <option value="all">Semua status</option>
+          <option value="ditinjau">Sudah ditinjau</option>
+          <option value="bukan">Bukan ancaman</option>
+        </select>
+      </div>
+      <div class="list" id="n-list"><div class="empty">Belum ada temuan. Hasil scan otomatis akan muncul di sini.</div></div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script>
+/* ===== KONFIGURASI: isi dari Supabase > Project Settings > API ===== */
+const SUPABASE_URL = "ISI_SUPABASE_URL";          // contoh: https://abcd1234.supabase.co
+const SUPABASE_ANON_KEY = "ISI_SUPABASE_ANON_KEY"; // anon / public key (aman ditaruh di sini, dilindungi login + RLS)
+</script>
+<script>
+(() => {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toast = (msg) => { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.append(t); setTimeout(() => t.remove(), 2200); };
+
+/* ---------------- Categories ---------------- */
+const DEFAULT_CATS = [
+  { id: "doxxing",   name: "Doxxing",                level: 3, desc: "Sebar / ancam sebar data pribadi, kontak, foto KTP" },
+  { id: "ancaman",   name: "Ancaman & Intimidasi",   level: 3, desc: "Ancaman fisik, datang ke rumah, teror" },
+  { id: "pelecehan", name: "Pelecehan & Kata Kasar", level: 2, desc: "Hinaan, makian, merendahkan" },
+  { id: "penagihan", name: "Penagihan Wajar",        level: 0, desc: "Pengingat bayar yang sopan" },
+  { id: "keluhan",   name: "Keluhan Nasabah",        level: 0, desc: "Komplain, bukan ancaman" },
+  { id: "netral",    name: "Netral",                 level: 0, desc: "Sapaan, konfirmasi" },
+];
+let cats = DEFAULT_CATS.slice();
+const catById = (id) => cats.find(c => c.id === id) || { id, name: id || "Tanpa kategori", level: 0 };
+const isThreat = (id) => (catById(id).level || 0) > 0;
+const chipCls = (id) => { const l = catById(id).level || 0; return l >= 3 ? "crit" : l > 0 ? "warn" : (id === "netral" ? "" : "ok"); };
+const chip = (id) => `<span class="chip ${chipCls(id)}">${esc(catById(id).name)}</span>`;
+
+/* ---------------- Text processing ---------------- */
+const LEET = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s" };
+function norm(s) {
+  return String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
+    .replace(/(?<=[a-z])[013457@$]|[013457@$](?=[a-z])/g, c => LEET[c])
+    .replace(/[^a-z0-9]+/g, " ").replace(/(.)\1{2,}/g, "$1").trim();
+}
+const STOP = new Set("yang dan di ke dari ini itu untuk dengan akan sudah ya aja saja juga ada atau pada karena jika kalau kalo yg dgn utk sih dong deh lah kok nih tuh pun jg sy aku gue gua lu lo anda kamu kami kita mereka dia nya the a".split(" "));
+function stem(w) {
+  if (w.length <= 4) return w;
+  let s = w.replace(/(nya|lah|kah|pun)$/, "");
+  if (s.length > 5) s = s.replace(/(kan|in|an)$/, "");
+  else if (s.length > 4) s = s.replace(/i$/, "");
+  if (/^meny/.test(s) && s.length > 6) s = "s" + s.slice(4);
+  else if (/^peny/.test(s) && s.length > 6) s = "s" + s.slice(4);
+  else { const m = s.match(/^(meng|mem|men|me|peng|pem|pen|pe|ber|be|ter|di|ke)/); if (m && s.length - m[1].length >= 4) s = s.slice(m[1].length); }
+  return s;
+}
+const tokens = (s) => norm(s).split(" ").filter(Boolean);
+function features(s) {
+  const t = tokens(s).filter(w => !STOP.has(w) && w.length > 1).map(stem);
+  const f = t.slice();
+  for (let i = 0; i < t.length - 1; i++) f.push(t[i] + "_" + t[i + 1]);
+  return f;
+}
+function splitSentences(text) {
+  return String(text || "").split(/\n+|(?<=[.!?])\s+/).map(s => s.trim()).filter(s => tokens(s).length >= 2);
+}
+
+/* ---------------- Naive Bayes model ---------------- */
+const model = { counts: {}, totals: {}, docs: {}, vocab: new Map(), N: 0, acc: null, perCat: {} };
+function addDoc(m, cat, feats, sign) {
+  m.counts[cat] ||= {}; m.totals[cat] ||= 0; m.docs[cat] ||= 0;
+  m.docs[cat] += sign; m.N += sign;
+  for (const f of feats) {
+    m.counts[cat][f] = (m.counts[cat][f] || 0) + sign;
+    m.totals[cat] += sign;
+    m.vocab.set(f, (m.vocab.get(f) || 0) + sign);
+    if (m.vocab.get(f) <= 0) m.vocab.delete(f);
+  }
+}
+function predict(text, m = model) {
+  const feats = features(text);
+  const classes = Object.keys(m.docs).filter(c => m.docs[c] > 0);
+  if (!classes.length || !feats.length) return null;
+  const V = m.vocab.size || 1, K = classes.length;
+  const known = feats.filter(f => m.vocab.has(f));
+  const logs = classes.map(c => {
+    let lp = Math.log((m.docs[c] + 1) / (m.N + K));
+    for (const f of known) lp += Math.log(((m.counts[c][f] || 0) + 1) / (m.totals[c] + V));
+    return lp;
+  });
+  const mx = Math.max(...logs), ex = logs.map(l => Math.exp(l - mx)), sum = ex.reduce((a, b) => a + b, 0);
+  const ranked = classes.map((c, i) => ({ cat: c, p: ex[i] / sum })).sort((a, b) => b.p - a.p);
+  const best = ranked[0].cat;
+  const coverage = known.length / feats.length;
+  const conf = known.length ? ranked[0].p * Math.sqrt(coverage) : 0;
+  const kw = [...new Set(known)].map(f => {
+    const pb = ((m.counts[best][f] || 0) + 1) / (m.totals[best] + V);
+    const others = classes.filter(c => c !== best);
+    const po = others.length ? others.reduce((a, c) => a + ((m.counts[c][f] || 0) + 1) / (m.totals[c] + V), 0) / others.length : 1e-9;
+    return { f, s: Math.log(pb / po) };
+  }).filter(x => x.s > 0.4).sort((a, b) => b.s - a.s).slice(0, 4).map(x => x.f.replace("_", " "));
+  return { ranked, best, conf, coverage, keywords: kw };
+}
+function train() {
+  Object.assign(model, { counts: {}, totals: {}, docs: {}, vocab: new Map(), N: 0 });
+  const feats = wordings.map(w => features(w.text));
+  wordings.forEach((w, i) => addDoc(model, w.category, feats[i], 1));
+  // leave-one-out accuracy
+  const per = {}; let ok = 0, n = 0;
+  if (wordings.length >= 6 && wordings.length <= 600) {
+    wordings.forEach((w, i) => {
+      if ((model.docs[w.category] || 0) < 2) return;
+      addDoc(model, w.category, feats[i], -1);
+      const p = predict(w.text);
+      addDoc(model, w.category, feats[i], 1);
+      per[w.category] ||= { n: 0, ok: 0 }; per[w.category].n++; n++;
+      if (p && p.best === w.category) { ok++; per[w.category].ok++; }
+    });
+  }
+  model.acc = n ? ok / n : null; model.perCat = per;
+  renderModel();
+}
+
+/* ---------------- Matching against master ---------------- */
+function tokEq(a, b) { return a === b || stem(a) === stem(b) || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a))) || (stem(a).length >= 4 && stem(b).length >= 4 && (stem(a).startsWith(stem(b)) || stem(b).startsWith(stem(a)))); }
+function matchMaster(text) {
+  const T = " " + norm(text) + " ", tt = tokens(text);
+  const out = [];
+  for (const w of wordings) {
+    const P = norm(w.text); if (!P) continue;
+    if (T.includes(" " + P + " ")) { out.push({ w, type: "persis", score: 1 }); continue; }
+    const pt = P.split(" ").filter(x => !STOP.has(x));
+    if (pt.length < 2) continue;
+    const hit = pt.filter(p => tt.some(t => tokEq(t, p))).length / pt.length;
+    if (hit >= 0.8) out.push({ w, type: "mirip", score: hit });
+  }
+  return out.sort((a, b) => (catById(b.w.category).level - catById(a.w.category).level) || b.score - a.score);
+}
+function analyze(text) {
+  const matches = matchMaster(text);
+  const pred = predict(text);
+  let verdict;
+  const threatM = matches.filter(m => isThreat(m.w.category));
+  if (threatM.length) {
+    const c = threatM[0].w.category;
+    verdict = { cls: catById(c).level >= 3 ? "crit" : "warn", big: "Terindikasi ancaman", sub: `Kategori utama: ${catById(c).name}. Cocok dengan ${threatM.length} wording di master.`, cat: c };
+  } else if (matches.length) {
+    const c = matches[0].w.category;
+    verdict = { cls: "ok", big: "Bukan ancaman", sub: `Cocok dengan wording master kategori ${catById(c).name}.`, cat: c };
+  } else if (pred && pred.conf >= 0.45) {
+    const t = isThreat(pred.best);
+    verdict = { cls: t ? "warn" : "ok", big: t ? "Kemungkinan ancaman" : "Kemungkinan bukan ancaman", sub: `Tidak ada di master. Prediksi model: ${catById(pred.best).name} (${Math.round(pred.conf * 100)}% yakin). Perlu dicek manual.`, cat: pred.best };
+  } else {
+    verdict = { cls: "", big: "Belum dikenali", sub: "Tidak ada di master dan model belum yakin. Tambahkan wording ini ke master agar dikenali berikutnya.", cat: null };
+  }
+  return { text, matches, pred, verdict };
+}
+function highlight(text, matches) {
+  let html = esc(text);
+  const seen = new Set();
+  for (const m of matches) {
+    const toks = norm(m.w.text).split(" ").filter(Boolean);
+    const words = m.type === "persis" ? [toks] : toks.filter(t => !STOP.has(t) && t.length > 2).map(t => [t]);
+    for (const seq of words) {
+      const key = seq.join(" "); if (seen.has(key)) continue; seen.add(key);
+      const src = seq.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + (m.type === "persis" ? "" : "\\w*")).join("[\\W_]+");
+      try {
+        const re = new RegExp("(^|[^\\w>])(" + (m.type === "persis" ? src : "\\w*" + src) + ")(?![^<]*>)", "gi");
+        html = html.replace(re, `$1<mark class="hl ${isThreat(m.w.category) ? "" : "safe"}">$2</mark>`);
+      } catch (_) {}
+    }
+  }
+  return html;
+}
+function renderResult(a, opts = {}) {
+  $("#result-empty").hidden = true;
+  const b = $("#result-body"); b.hidden = false;
+  const v = a.verdict;
+  const pr = a.pred;
+  const exists = a.matches.some(m => m.type === "persis" && norm(m.w.text) === norm(a.text));
+  b.innerHTML = `
+    <div class="verdict ${v.cls}"><span class="lbl">Kesimpulan</span><span class="big">${esc(v.big)}</span><span>${esc(v.sub)}</span></div>
+    <div><h3>Cocok di master (${a.matches.length})</h3>
+      <div class="list">${a.matches.length ? a.matches.slice(0, 12).map(m => `
+        <div class="item"><span class="t">${esc(m.w.text)}</span>${chip(m.w.category)}
+          <div class="meta"><span class="chip ghost">${m.type === "persis" ? "Persis" : "Mirip " + Math.round(m.score * 100) + "%"}</span>${m.w.note ? esc(m.w.note) : ""}</div></div>`).join("")
+        : `<div class="empty">Tidak ada wording master yang cocok.</div>`}</div></div>
+    <div><h3>Prediksi model ML</h3>
+      ${pr ? `<div class="list">${pr.ranked.slice(0, 3).map((r, i) => `
+        <div class="item"><span class="t">${esc(catById(r.cat).name)}${i === 0 && pr.keywords.length ? ` <span class="hint">· kata kunci: ${esc(pr.keywords.join(", "))}</span>` : ""}</span>
+          <span class="row" style="gap:8px"><span class="bar"><i style="width:${Math.round(r.p * 100)}%"></i></span><span class="mono">${Math.round(r.p * 100)}%</span></span></div>`).join("")}</div>
+        <p class="hint">Keyakinan ${Math.round(pr.conf * 100)}% · ${Math.round(pr.coverage * 100)}% kata sudah dikenal model.</p>`
+        : `<p class="hint">Model belum punya data latih. Isi Master Wording dulu.</p>`}</div>
+    ${opts.noText ? "" : `<div><h3>Teks</h3><div class="quote">${highlight(a.text, a.matches)}</div></div>`}
+    ${exists ? "" : `<div class="row"><button class="btn" id="res-add">Tambah teks ini ke master</button></div>`}`;
+  const ra = $("#res-add");
+  if (ra) ra.onclick = () => { switchTab("master"); $("#add-text").value = a.text.slice(0, 300); if (v.cat) $("#add-cat").value = v.cat; $("#add-text").focus(); };
+}
+
+/* ---------------- Storage (db, fallback local) ---------------- */
+let wordings = [];
+let db = null, canWrite = true;
+const LKEY = "wordingRadar.local.v1";
+function loadLocal() { try { const j = JSON.parse(localStorage.getItem(LKEY) || "{}"); wordings = j.wordings || []; if (j.cats) cats = j.cats; } catch (_) {} }
+function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify({ wordings, cats })); } catch (_) {} }
+const uid = () => "w" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+async function addWording(text, category, note = "") {
+  text = String(text || "").trim().replace(/\s+/g, " ");
+  if (!text) return { ok: false, msg: "Wording masih kosong." };
+  const dup = wordings.find(w => norm(w.text) === norm(text));
+  if (dup) return { ok: false, msg: `Sudah ada di master (${catById(dup.category).name}).` };
+  const doc = { text, category, note: note || "", createdAt: new Date().toISOString() };
+  if (db) {
+    try { await db.collection("wordings").add(doc); }
+    catch (e) { if (e && e.code === "invalid_argument") { canWrite = false; applyWriteState(); return { ok: false, msg: "Kamu hanya punya akses lihat." }; } return { ok: false, msg: "Gagal menyimpan. Coba lagi." }; }
+  } else { wordings.push({ id: uid(), ...doc }); saveLocal(); refreshAll(); }
+  return { ok: true };
+}
+async function updateWording(id, patch) {
+  if (db) { try { await db.doc("wordings/" + id).update(patch); } catch (_) { toast("Gagal menyimpan perubahan"); } }
+  else { const w = wordings.find(x => x.id === id); Object.assign(w, patch); saveLocal(); refreshAll(); }
+}
+async function deleteWording(id) {
+  if (db) { try { await db.doc("wordings/" + id).delete(); } catch (_) { toast("Gagal menghapus"); } }
+  else { wordings = wordings.filter(x => x.id !== id); saveLocal(); refreshAll(); }
+}
+async function saveCats() {
+  if (db) { try { await db.doc("config/categories").set({ items: cats }); } catch (_) { toast("Gagal menyimpan kategori"); } }
+  else { saveLocal(); refreshAll(); }
+}
+
+/* ---------------- Rendering: master ---------------- */
+let mFilterCat = "all";
+function fillCatSelects() {
+  const opts = cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}${c.level > 0 ? " · ancaman" : ""}</option>`).join("");
+  for (const id of ["#add-cat", "#bulk-cat"]) { const s = $(id), v = s.value; s.innerHTML = opts; if (v && cats.some(c => c.id === v)) s.value = v; }
+}
+function renderCats() {
+  const count = (id) => wordings.filter(w => w.category === id).length;
+  $("#cat-table").innerHTML = `<tr><th>Kategori</th><th>Status</th><th style="text-align:right">Wording</th><th></th></tr>` +
+    cats.map(c => `<tr><td>${chip(c.id)}<div class="hint">${esc(c.desc || "")}</div></td>
+      <td><select data-lvl="${esc(c.id)}" style="width:auto;padding:4px 8px;font-size:12px">
+        <option value="3"${c.level >= 3 ? " selected" : ""}>Ancaman berat</option>
+        <option value="2"${c.level > 0 && c.level < 3 ? " selected" : ""}>Ancaman</option>
+        <option value="0"${!c.level ? " selected" : ""}>Bukan ancaman</option></select></td>
+      <td class="n">${count(c.id)}</td>
+      <td>${count(c.id) ? "" : `<button class="btn sm danger" data-delcat="${esc(c.id)}">Hapus</button>`}</td></tr>`).join("");
+  $("#cat-table").querySelectorAll("[data-lvl]").forEach(s => s.onchange = () => { catById(s.dataset.lvl).level = Number(s.value); cats = cats.map(c => c.id === s.dataset.lvl ? { ...c, level: Number(s.value) } : c); saveCats(); });
+  $("#cat-table").querySelectorAll("[data-delcat]").forEach(b => b.onclick = () => { cats = cats.filter(c => c.id !== b.dataset.delcat); saveCats(); });
+  $("#m-cats").innerHTML = [`<button data-fc="all" aria-pressed="${mFilterCat === "all"}">Semua · ${wordings.length}</button>`]
+    .concat(cats.map(c => `<button data-fc="${esc(c.id)}" aria-pressed="${mFilterCat === c.id}">${esc(c.name)} · ${count(c.id)}</button>`)).join("");
+  $("#m-cats").querySelectorAll("[data-fc]").forEach(b => b.onclick = () => { mFilterCat = b.dataset.fc; renderCats(); renderMaster(); });
+}
+let confirmDel = null;
+function renderMaster() {
+  const q = norm($("#m-filter").value);
+  const list = wordings.filter(w => (mFilterCat === "all" || w.category === mFilterCat) && (!q || norm(w.text + " " + (w.note || "")).includes(q)))
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const el = $("#m-list");
+  if (!wordings.length) { el.innerHTML = `<div class="empty">Master masih kosong. Tambahkan wording pertama di form <b>Tambah wording</b> di atas.</div>`; return; }
+  if (!list.length) { el.innerHTML = `<div class="empty">Tidak ada wording yang cocok dengan filter.</div>`; return; }
+  const catOpts = (sel) => cats.map(c => `<option value="${esc(c.id)}"${c.id === sel ? " selected" : ""}>${esc(c.name)}</option>`).join("");
+  el.innerHTML = list.slice(0, 400).map(w => `
+    <div class="item"><span class="t">${esc(w.text)}</span>
+      <span class="row" style="gap:6px">
+        <select data-cat="${esc(w.id)}" style="width:auto;padding:4px 8px;font-size:12px" ${canWrite ? "" : "disabled"}>${catOpts(w.category)}</select>
+        ${canWrite ? `<button class="btn sm danger" data-del="${esc(w.id)}">${confirmDel === w.id ? "Yakin hapus?" : "Hapus"}</button>` : ""}
+      </span>
+      <div class="meta">${chip(w.category)}${w.example ? `<span class="chip ghost">Contoh</span>` : ""}${w.note ? `<span>${esc(w.note)}</span>` : ""}<span class="mono">${esc(String(w.createdAt || "").slice(0, 10))}</span></div>
+    </div>`).join("") + (list.length > 400 ? `<div class="empty">Menampilkan 400 dari ${list.length}. Gunakan filter.</div>` : "");
+  el.querySelectorAll("[data-cat]").forEach(s => s.onchange = () => updateWording(s.dataset.cat, { category: s.value }));
+  el.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if (confirmDel === b.dataset.del) { confirmDel = null; deleteWording(b.dataset.del); }
+    else { confirmDel = b.dataset.del; renderMaster(); setTimeout(() => { if (confirmDel === b.dataset.del) { confirmDel = null; renderMaster(); } }, 4000); }
+  });
+}
+function renderStats() {
+  $("#s-total").textContent = wordings.length;
+  $("#s-threat").textContent = wordings.filter(w => isThreat(w.category)).length;
+  $("#s-safe").textContent = wordings.filter(w => !isThreat(w.category)).length;
+  $("#s-acc").textContent = model.acc == null ? "–" : Math.round(model.acc * 100) + "%";
+}
+function renderModel() {
+  const rows = cats.filter(c => model.docs[c.id] > 0).map(c => {
+    const p = model.perCat[c.id];
+    return `<tr><td>${chip(c.id)}</td><td class="n">${model.docs[c.id] || 0}</td><td class="n">${p && p.n ? Math.round(p.ok / p.n * 100) + "%" : "–"}</td></tr>`;
+  });
+  $("#model-table").innerHTML = `<tr><th>Kategori</th><th style="text-align:right">Data latih</th><th style="text-align:right">Akurasi</th></tr>` + (rows.join("") || `<tr><td colspan="3" class="hint">Belum ada data latih.</td></tr>`);
+  const weak = cats.filter(c => (model.docs[c.id] || 0) > 0 && (model.docs[c.id] || 0) < 5).map(c => c.name);
+  $("#model-note").textContent = `Kosakata ${model.vocab.size} fitur · ${model.N} contoh.` + (weak.length ? ` Tambah minimal 5 wording untuk: ${weak.join(", ")} agar prediksi lebih stabil.` : "");
+}
+function applyWriteState() {
+  for (const id of ["#btn-add", "#btn-bulk", "#btn-cat"]) $(id).disabled = !canWrite;
+  if (!canWrite) $("#add-msg").textContent = "Akses lihat saja: kamu tidak bisa mengubah master.";
+}
+function refreshAll() {
+  fillCatSelects(); train(); renderStats(); renderCats(); renderMaster();
+  if (lastCheck) rerunCheck();
+  renderThreats();
+}
+
+/* ---------------- Tabs & modes ---------------- */
+function switchTab(t) {
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  for (const k of ["cek", "master", "ml", "notif"]) $("#tab-" + k).hidden = k !== t;
+  try { localStorage.setItem("wordingRadar.tab", t); } catch (_) {}
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+let mode = "ocr", lastCheck = null;
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m));
+  $("#box-ocr").hidden = m !== "ocr"; $("#box-paste").hidden = m !== "paste"; $("#box-search").hidden = m !== "search";
+}
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => setMode(b.dataset.m));
+function runCheck(text, src) {
+  if (!text.trim()) return;
+  lastCheck = { text, src };
+  renderResult(analyze(text));
+}
+function rerunCheck() { if (lastCheck) runCheck(lastCheck.text, lastCheck.src); }
+
+/* paste */
+let pt;
+$("#btn-paste").onclick = () => runCheck($("#paste-text").value, "paste");
+$("#paste-text").addEventListener("input", () => { clearTimeout(pt); pt = setTimeout(() => runCheck($("#paste-text").value, "paste"), 400); });
+
+/* search */
+$("#q").addEventListener("input", () => {
+  const raw = $("#q").value, q = norm(raw), el = $("#search-results");
+  if (!q) { el.innerHTML = ""; return; }
+  const qt = q.split(" ");
+  const res = wordings.map(w => {
+    const n = norm(w.text);
+    const s = n.includes(q) ? 2 : qt.filter(t => n.split(" ").some(x => tokEq(x, t))).length / qt.length;
+    return { w, s };
+  }).filter(x => x.s >= 0.67).sort((a, b) => b.s - a.s).slice(0, 30);
+  el.innerHTML = res.length ? res.map(({ w }) => `<div class="item"><span class="t">${esc(w.text)}</span>${chip(w.category)}</div>`).join("")
+    : `<div class="empty">Tidak ada di master.</div>`;
+  lastCheck = { text: raw, src: "search" };
+  renderResult(analyze(raw), { noText: true });
+});
+
+/* OCR via Tesseract.js (di browser) */
+let imgFile = null, sample = null, ocrOK = typeof Tesseract !== "undefined";
+function setImage(f) {
+  if (!f || !/^image\//.test(f.type)) { toast("File harus gambar (PNG, JPG, WebP)"); return; }
+  imgFile = f;
+  const url = URL.createObjectURL(f), img = $("#preview");
+  img.src = url; img.hidden = false;
+  $("#btn-ocr").disabled = !ocrOK; $("#btn-clear-img").hidden = false;
+  $("#ocr-status").textContent = ocrOK ? "Gambar siap. Klik Baca teks." : "OCR gagal dimuat. Periksa koneksi lalu muat ulang.";
+}
+const drop = $("#drop");
+drop.onclick = () => $("#file").click();
+drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file").click(); } };
+$("#file").onchange = (e) => setImage(e.target.files[0]);
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); setImage(e.dataTransfer.files[0]); });
+document.addEventListener("paste", e => {
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+  if (item) { e.preventDefault(); switchTab("cek"); setMode("ocr"); setImage(item.getAsFile()); }
+});
+$("#btn-clear-img").onclick = () => $("#file").click();
+$("#btn-ocr").onclick = async () => {
+  if (!imgFile || !ocrOK) return;
+  const btn = $("#btn-ocr"); btn.disabled = true;
+  $("#ocr-status").textContent = "Menyiapkan OCR…";
+  try {
+    const { data } = await Tesseract.recognize(imgFile, "ind+eng", {
+      logger: m => { if (m.status === "recognizing text") $("#ocr-status").textContent = "Membaca screenshot… " + Math.round((m.progress || 0) * 100) + "%"; }
+    });
+    const text = String(data.text || "").replace(/\n{2,}/g, "\n").trim();
+    $("#ocr-text").value = text;
+    $("#ocr-status").textContent = text ? "Selesai. Teks dicek ke master (periksa dan rapikan bila ada salah baca)." : "Tidak ada teks terbaca. Coba screenshot yang lebih jelas.";
+    if (text) runCheck(text, "ocr");
+  } catch (e) {
+    $("#ocr-status").textContent = "OCR gagal. Coba gambar lain atau muat ulang halaman.";
+  } finally { btn.disabled = !ocrOK; }
+};
+let ot; $("#ocr-text").addEventListener("input", () => { clearTimeout(ot); ot = setTimeout(() => runCheck($("#ocr-text").value, "ocr"), 500); });
+
+/* ---------------- Master actions ---------------- */
+$("#btn-add").onclick = async () => {
+  const r = await addWording($("#add-text").value, $("#add-cat").value, $("#add-note").value);
+  $("#add-msg").textContent = r.ok ? "Tersimpan." : r.msg;
+  if (r.ok) { $("#add-text").value = ""; $("#add-note").value = ""; toast("Wording tersimpan"); }
+};
+$("#add-text").addEventListener("keydown", e => { if (e.key === "Enter") $("#btn-add").click(); });
+$("#btn-bulk").onclick = async () => {
+  const lines = $("#bulk-text").value.split("\n").map(s => s.trim()).filter(Boolean);
+  let ok = 0, skip = 0;
+  for (const l of lines) { const r = await addWording(l, $("#bulk-cat").value); r.ok ? ok++ : skip++; }
+  $("#bulk-text").value = ""; toast(`${ok} tersimpan${skip ? `, ${skip} dilewati (duplikat)` : ""}`);
+};
+$("#btn-cat").onclick = () => {
+  const name = $("#new-cat").value.trim(); if (!name) return;
+  const id = norm(name).replace(/ /g, "-").slice(0, 40) || uid();
+  if (cats.some(c => c.id === id)) { toast("Kategori sudah ada"); return; }
+  cats = cats.concat({ id, name, level: Number($("#new-cat-threat").value), desc: "" });
+  $("#new-cat").value = ""; saveCats();
+};
+$("#m-filter").addEventListener("input", renderMaster);
+
+/* ---------------- ML discovery ---------------- */
+let candidates = [];
+function renderCandidates() {
+  const only = $("#ml-only-threat").checked;
+  const list = candidates.filter(c => !c.added && (!only || isThreat(c.cat)));
+  const el = $("#ml-list");
+  if (!candidates.length) { el.innerHTML = `<div class="empty">Tidak ada kandidat baru. Semua kalimat sudah ada di master atau terlalu pendek.</div>`; return; }
+  if (!list.length) { el.innerHTML = `<div class="empty">Tidak ada kandidat yang sesuai filter.</div>`; return; }
+  const catOpts = (sel) => cats.map(c => `<option value="${esc(c.id)}"${c.id === sel ? " selected" : ""}>${esc(c.name)}</option>`).join("");
+  el.innerHTML = list.map(c => `
+    <div class="item" data-k="${c.k}"><span class="t">${esc(c.text)}</span>
+      <span class="row" style="gap:8px">${c.conf != null ? `<span class="bar"><i style="width:${Math.round(c.conf * 100)}%"></i></span><span class="mono">${Math.round(c.conf * 100)}%</span>` : ""}
+        ${canWrite ? `<button class="btn sm" data-open="${c.k}">Tambah</button>` : ""}</span>
+      <div class="meta">${chip(c.cat)}<span class="chip ghost">${c.src === "ai" ? "AI" : "Model"}</span>${c.why ? `<span>${esc(c.why)}</span>` : ""}</div>
+      ${c.open ? `<div class="inline-form"><input type="text" id="cf-t-${c.k}" value="${esc(c.text)}"><select id="cf-c-${c.k}">${catOpts(c.cat)}</select><button class="btn primary sm" data-save="${c.k}">Simpan ke master</button></div>` : ""}
+    </div>`).join("");
+  el.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { const c = candidates.find(x => x.k == b.dataset.open); c.open = !c.open; renderCandidates(); });
+  el.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
+    const k = b.dataset.save, c = candidates.find(x => x.k == k);
+    const r = await addWording($("#cf-t-" + k).value, $("#cf-c-" + k).value, c.src === "ai" ? "dari ekstraksi AI" : "dari temuan model");
+    if (r.ok) { c.added = true; toast("Masuk ke master"); renderCandidates(); } else toast(r.msg);
+  });
+}
+$("#ml-only-threat").onchange = renderCandidates;
+$("#btn-ml").onclick = () => {
+  const sents = splitSentences($("#ml-text").value);
+  if (!sents.length) { $("#ml-status").textContent = "Tempel teks dulu."; return; }
+  if (!model.N) { $("#ml-status").textContent = "Model belum punya data latih. Isi Master Wording dulu."; return; }
+  let known = 0; const seen = new Set();
+  candidates = [];
+  sents.forEach((s, i) => {
+    const n = norm(s); if (seen.has(n)) return; seen.add(n);
+    if (matchMaster(s).some(m => m.type === "persis")) { known++; return; }
+    const p = predict(s); if (!p) return;
+    candidates.push({ k: i, text: s.slice(0, 300), cat: p.best, conf: p.conf, why: p.keywords.length ? "kata kunci: " + p.keywords.join(", ") : "", src: "ml" });
+  });
+  candidates.sort((a, b) => (isThreat(b.cat) - isThreat(a.cat)) || b.conf - a.conf);
+  $("#ml-status").textContent = `${sents.length} kalimat dibaca · ${known} sudah ada di master · ${candidates.length} kandidat baru.`;
+  renderCandidates();
+};
+$("#btn-ai").onclick = async () => {
+  const txt = $("#ml-text").value.trim(); if (!txt || !sample) { $("#ml-status").textContent = "Tempel teks dulu."; return; }
+  const btn = $("#btn-ai"); btn.disabled = true; $("#ml-status").textContent = "AI sedang membaca teks…";
+  const catList = cats.map(c => `- ${c.id}: ${c.name}${c.level > 0 ? " (ancaman)" : " (bukan ancaman)"}${c.desc ? " — " + c.desc : ""}`).join("\n");
+  const ex = wordings.slice(0, 40).map(w => `"${w.text}" => ${w.category}`).join("\n");
+  try {
+    const arr = await sample.json(
+      `Kamu membantu tim fintech P2P lending di Indonesia membangun kamus wording untuk mendeteksi ancaman, doxxing, dan pesan yang bukan ancaman dalam chat penagihan/komplain.\n\nKategori:\n${catList}\n\nContoh master yang sudah ada:\n${ex}\n\n` +
+      `Dari teks di bawah, ekstrak frasa pendek (3-12 kata) yang layak masuk master wording. Ambil frasa inti yang bisa dipakai ulang, bukan seluruh kalimat. Lewati yang sudah ada di contoh.\n` +
+      `Balas HANYA JSON array: [{"wording": string, "kategori": salah satu id kategori di atas, "alasan": string singkat}]. Maksimal 25 item.\n\nTEKS:\n${txt.slice(0, 12000)}`,
+      { modelTier: "default" });
+    const items = Array.isArray(arr) ? arr : [];
+    const base = Date.now();
+    const fresh = items.filter(x => x && x.wording && !wordings.some(w => norm(w.text) === norm(x.wording)))
+      .map((x, i) => ({ k: base + i, text: String(x.wording).slice(0, 300), cat: cats.some(c => c.id === x.kategori) ? x.kategori : "netral", conf: null, why: String(x.alasan || ""), src: "ai" }));
+    candidates = fresh.concat(candidates.filter(c => c.src !== "ai"));
+    $("#ml-status").textContent = `AI menemukan ${fresh.length} frasa baru.`;
+    renderCandidates();
+  } catch (e) {
+    $("#ml-status").textContent = e?.code === "not_granted" ? "Izin memakai Claude ditolak." : e?.code === "rate_limited" ? "Terlalu banyak permintaan, coba lagi nanti." : "Ekstraksi AI gagal. Coba lagi.";
+  } finally { btn.disabled = false; }
+};
+
+/* ---------------- Notifikasi ancaman ---------------- */
+let threats = [], scanInfo = null, nPlat = "all";
+const PLATS = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", threads: "Threads" };
+const fmtDT = (iso) => { if (!iso) return "tidak diketahui"; const d = new Date(iso); if (isNaN(d)) return esc(iso);
+  return d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB"; };
+const fmtD = (iso) => { if (!iso) return "tidak diketahui"; const d = new Date(iso); if (isNaN(d)) return esc(iso);
+  return /T\d/.test(iso) ? fmtDT(iso) : d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }); };
+function renderScan() {
+  const el = $("#scanbar"); if (!scanInfo) return;
+  el.innerHTML = `<span>Scan terakhir: <b>${fmtDT(scanInfo.lastRunAt)}</b></span>
+    <span>Status: <b>${esc(scanInfo.lastStatus || "-")}</b></span>
+    <span>Postingan diperiksa: <b class="mono">${Number(scanInfo.checked || 0)}</b></span>
+    <span>Temuan baru: <b class="mono">${Number(scanInfo.newThreats || 0)}</b></span>
+    ${scanInfo.via ? `<span>Lewat: <b>${scanInfo.via === "web" ? "Web search (laptop mati)" : "Chrome di laptop"}</b></span>` : ""}
+    ${scanInfo.note ? `<span>${esc(scanInfo.note)}</span>` : ""}`;
+}
+let scanReq = null;
+function renderReq() {
+  const btn = $("#btn-scan"), el = $("#scan-req");
+  btn.hidden = false;
+  if (!db) { btn.disabled = true; el.textContent = "Tombol ini butuh koneksi ke Supabase."; return; }
+  if (!canWrite) { btn.disabled = true; el.textContent = "Kamu hanya punya akses lihat, jadi tidak bisa meminta scan."; return; }
+  const st = scanReq && scanReq.status;
+  const busy = st === "menunggu" || st === "diteruskan";
+  btn.disabled = busy;
+  el.textContent = !scanReq ? "Antrean dicek tiap jam, jadi scan manual mulai paling lambat ±1 jam setelah diklik."
+    : st === "menunggu" ? `Diminta ${fmtDT(scanReq.requestedAt)}. Menunggu giliran (maks ±1 jam).`
+    : st === "diteruskan" ? `Sedang jalan sejak ${fmtDT(scanReq.firedAt)}.`
+    : `Scan manual terakhir selesai ${fmtDT(scanReq.doneAt || scanReq.requestedAt)}${scanReq.via === "web" ? " lewat web search" : ""}.`;
+}
+$("#btn-scan").onclick = async () => {
+  try { await db.doc("config/scanRequest").set({ status: "menunggu", requestedAt: new Date().toISOString() }); toast("Scan masuk antrean"); }
+  catch (_) { toast("Gagal meminta scan"); }
+};
+function renderThreats() {
+  const fresh = threats.filter(t => (t.status || "baru") === "baru").length;
+  const b = $("#notif-badge"); b.textContent = fresh; b.hidden = !fresh;
+  const count = (p) => threats.filter(t => t.platform === p).length;
+  $("#n-plat").innerHTML = [`<button data-np="all" aria-pressed="${nPlat === "all"}">Semua · ${threats.length}</button>`]
+    .concat(Object.entries(PLATS).map(([k, v]) => `<button data-np="${k}" aria-pressed="${nPlat === k}">${v} · ${count(k)}</button>`)).join("");
+  $("#n-plat").querySelectorAll("[data-np]").forEach(x => x.onclick = () => { nPlat = x.dataset.np; renderThreats(); });
+  const st = $("#n-status").value;
+  const list = threats.filter(t => (nPlat === "all" || t.platform === nPlat) && (st === "all" || (t.status || "baru") === st))
+    .sort((a, b) => String(b.detectedAt).localeCompare(String(a.detectedAt)));
+  const el = $("#n-list");
+  if (!threats.length) { el.innerHTML = `<div class="empty">Belum ada temuan. Hasil scan otomatis akan muncul di sini.</div>`; return; }
+  if (!list.length) { el.innerHTML = `<div class="empty">Tidak ada temuan untuk filter ini.</div>`; return; }
+  el.innerHTML = list.slice(0, 300).map(t => {
+    const r = t.result || {}, ms = Array.isArray(r.matches) ? r.matches : [];
+    const now = analyze(t.text || "");   // re-screen against the current master
+    const changed = now.verdict.big !== r.verdict;
+    const stt = t.status || "baru";
+    const safeLink = /^https?:\/\//i.test(t.link || "") ? t.link : "";
+    return `<div class="threat ${stt !== "baru" ? "done" : ""}">
+      <div class="head"><span class="plat">${esc(PLATS[t.platform] || t.platform || "?")}</span>
+        <span class="chip ${r.verdict === "Terindikasi ancaman" ? "crit" : "warn"}">${esc(r.verdict || "Terindikasi ancaman")}</span>
+        ${r.category ? chip(r.category) : ""}
+        ${stt === "ditinjau" ? `<span class="chip ok">Sudah ditinjau</span>` : stt === "bukan" ? `<span class="chip">Ditandai bukan ancaman</span>` : `<span class="chip ghost">Baru</span>`}
+        ${t.author ? `<span class="hint">oleh ${esc(t.author)}</span>` : ""}${t.via === "web" ? `<span class="chip ghost">via web search</span>` : ""}</div>
+      <div class="quote">${highlight(t.text || "", now.matches.length ? now.matches : ms.map(m => ({ w: { text: m.text, category: m.category }, type: m.type || "persis" })))}</div>
+      <div class="dates"><span>Tanggal posting<br><b>${fmtD(t.postedAt)}</b></span><span>Ditangkap sistem<br><b>${fmtDT(t.detectedAt)}</b></span>
+        <span>Wording cocok<br><b>${ms.length ? esc(ms.map(m => m.text).join(" · ")) : "-"}</b></span></div>
+      ${changed ? `<p class="hint">Screening ulang dengan master saat ini: <b>${esc(now.verdict.big)}</b></p>` : ""}
+      <div class="row">${safeLink ? `<a href="${esc(safeLink)}" target="_blank" rel="noopener noreferrer">${esc(safeLink)}</a>` : `<span class="hint">Link tidak tersedia</span>`}
+        <span style="margin-left:auto" class="row">${canWrite && db ? (stt === "baru"
+          ? `<button class="btn sm" data-st="ditinjau" data-id="${esc(t.id)}">Tandai sudah ditinjau</button><button class="btn sm" data-st="bukan" data-id="${esc(t.id)}">Bukan ancaman</button>`
+          : `<button class="btn sm" data-st="baru" data-id="${esc(t.id)}">Kembalikan ke baru</button>`) : ""}</span></div>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-st]").forEach(x => x.onclick = async () => {
+    try { await db.doc("threats/" + x.dataset.id).update({ status: x.dataset.st, reviewedAt: new Date().toISOString() }); }
+    catch (_) { toast("Gagal mengubah status"); }
+  });
+}
+$("#n-status").onchange = renderThreats;
+
+/* ---------------- Boot ---------------- */
+try { const t = localStorage.getItem("wordingRadar.tab"); if (t) switchTab(t); } catch (_) {}
+fillCatSelects(); renderCats(); renderModel();
+/* ---------------- Supabase adapter (meniru API db yang dipakai halaman) ---------------- */
+function makeDb(SB) {
+  const listeners = {};
+  const fire = (coll) => (listeners[coll] || new Set()).forEach(fn => fn());
+  SB.channel("docs-live").on("postgres_changes", { event: "*", schema: "public", table: "docs" }, p => {
+    const c = (p.new && p.new.collection) || (p.old && p.old.collection); if (c) fire(c);
+  }).subscribe();
+  function watch(coll, run) {
+    let t; const fn = () => { clearTimeout(t); t = setTimeout(run, 250); };
+    (listeners[coll] ||= new Set()).add(fn); run();
+    setInterval(run, 60000); // cadangan bila realtime terputus
+    return () => listeners[coll].delete(fn);
+  }
+  const ok = (r) => { if (r.error) throw { code: r.error.code === "42501" ? "invalid_argument" : "unavailable", message: r.error.message }; return r.data; };
+  function docRef(coll, id) {
+    return {
+      id, path: coll + "/" + id,
+      async get() { const d = ok(await SB.from("docs").select("data").eq("collection", coll).eq("id", id).maybeSingle()); return { id, exists: !!d, data: () => d ? d.data : undefined }; },
+      async set(data) { ok(await SB.from("docs").upsert({ collection: coll, id, data, updated_at: new Date().toISOString() })); },
+      async update(patch) { const cur = await this.get(); if (!cur.exists) throw { code: "invalid_argument" }; await this.set({ ...cur.data(), ...patch }); },
+      async delete() { ok(await SB.from("docs").delete().eq("collection", coll).eq("id", id)); },
+      onSnapshot(next, err) { return watch(coll, async () => { try { next(await this.get()); } catch (e) { err && err(e); } }); },
+    };
+  }
+  function query(coll, ord, lim) {
+    return {
+      orderBy(f, dir) { return query(coll, { f, dir }, lim); },
+      limit(n) { return query(coll, ord, n); },
+      doc(id) { return docRef(coll, id || crypto.randomUUID()); },
+      async add(data) { const r = docRef(coll, crypto.randomUUID()); await r.set(data); return r; },
+      onSnapshot(next, err) {
+        return watch(coll, async () => {
+          try {
+            let q = SB.from("docs").select("id,data").eq("collection", coll);
+            if (ord) q = q.order("data->>" + ord.f, { ascending: ord.dir !== "desc" });
+            q = q.limit(lim || 5000);
+            const rows = ok(await q);
+            next({ docs: rows.map(r => ({ id: r.id, exists: true, data: () => r.data })) });
+          } catch (e) { err && err(e); }
+        });
+      },
+    };
+  }
+  return { doc: (p) => { const [c, id] = p.split("/"); return docRef(c, id); }, collection: (c) => query(c) };
+}
+
+function startApp(d) {
+  $("#main").hidden = false; $("#login").hidden = true;
+  applyWriteState();
+  if (!ocrOK) $("#ocr-status").textContent = "OCR gagal dimuat. Periksa koneksi lalu muat ulang.";
+  if (d) {
+    db = d;
+    $("#mode-dot").classList.add("on"); $("#mode-txt").textContent = "Tersinkron: master wording dipakai bersama seluruh tim.";
+    db.doc("config/categories").onSnapshot(snap => {
+      const items = snap.exists ? snap.data().items : null;
+      cats = Array.isArray(items) && items.length ? items.map(x => ({ ...x })) : DEFAULT_CATS.slice();
+      refreshAll();
+    }, () => {});
+    db.collection("wordings").onSnapshot(snap => {
+      wordings = snap.docs.map(x => ({ id: x.id, ...x.data() }));
+      refreshAll();
+    }, () => { $("#mode-txt").textContent = "Koneksi database terputus. Muat ulang halaman."; });
+    db.collection("threats").orderBy("detectedAt", "desc").limit(500).onSnapshot(snap => {
+      threats = snap.docs.map(x => ({ id: x.id, ...x.data() })); renderThreats();
+    }, () => {});
+    db.doc("config/scan").onSnapshot(snap => { scanInfo = snap.exists ? snap.data() : null; renderScan(); }, () => {});
+    db.doc("config/scanRequest").onSnapshot(snap => { scanReq = snap.exists ? snap.data() : null; renderReq(); }, () => {});
+  } else {
+    $("#btn-signout").hidden = true;
+    loadLocal();
+    $("#mode-txt").textContent = "Mode lokal: Supabase belum dikonfigurasi, data hanya tersimpan di browser ini.";
+    renderReq();
+    refreshAll();
+  }
+}
+
+(async () => {
+  const configured = typeof supabase !== "undefined" && /^https:\/\//.test(SUPABASE_URL) && !/^ISI_/.test(SUPABASE_ANON_KEY);
+  if (!configured) { startApp(null); return; }
+  const SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let started = false;
+  const go = (session) => {
+    if (!session) { $("#login").hidden = false; $("#main").hidden = true; return; }
+    $("#who").textContent = " · " + (session.user.email || "");
+    if (!started) { started = true; startApp(makeDb(SB)); }
+  };
+  const { data } = await SB.auth.getSession();
+  go(data.session);
+  SB.auth.onAuthStateChange((_e, session) => { if (session) go(session); else if (started) location.reload(); });
+  $("#btn-login").onclick = async () => {
+    const email = $("#login-email").value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) { $("#login-msg").textContent = "Isi email yang valid."; return; }
+    $("#btn-login").disabled = true; $("#login-msg").textContent = "Mengirim…";
+    const { error } = await SB.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false } });
+    $("#btn-login").disabled = false;
+    $("#login-msg").textContent = error ? "Email ini belum terdaftar sebagai anggota tim. Minta admin mengundang kamu." : "Link login terkirim. Cek inbox email kamu.";
+  };
+  $("#login-email").addEventListener("keydown", e => { if (e.key === "Enter") $("#btn-login").click(); });
+  $("#btn-signout").onclick = async () => { await SB.auth.signOut(); location.reload(); };
+})();
+})();
+</script>
+</body>
+</html>
